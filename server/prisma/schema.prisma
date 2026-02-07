@@ -1,14 +1,76 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int          @id @default(autoincrement())
+  email       String       @unique
+  password    String
+  tokens      Int          @default(0)
+  craftPoints Int          @default(0)
+  createdAt   DateTime     @default(now())
+  collection  Collection[]
+}
+
+model Card {
+  id            Int            @id @default(autoincrement())
+  gameId        String         @unique
+  name          String
+  set           String
+  rarity        String
+  cardType      String
+  element       String?
+  imageUrl      String
+  collection    Collection[]
+  ninjaStats    NinjaStats?
+  jutsuStats    JutsuStats?
+  missionStats  MissionStats?
+}
+
+model NinjaStats {
+  id             Int      @id @default(autoincrement())
+  cardId         Int      @unique
+  card           Card     @relation(fields: [cardId], references: [id])
+  traits         String[]
+  turnCost       Int
+  handCost       Int      @default(0)
+  healthyHead    Int
+  healthySupport Int
+  injuredHead    Int
+  injuredSupport Int
+  effectText     String?
+}
+
+model JutsuStats {
+  id         Int    @id @default(autoincrement())
+  cardId     Int    @unique
+  card       Card   @relation(fields: [cardId], references: [id])
+  cost       String
+  effectText String
+}
+
+model MissionStats {
+  id           Int    @id @default(autoincrement())
+  cardId       Int    @unique
+  card         Card   @relation(fields: [cardId], references: [id])
+  turnCost     Int
+  handCost     Int    @default(0)
+  effectText   String
+}
+
+model Collection {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  cardId   Int
+  quantity Int      @default(1)
+  pulledAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id])
+  card     Card     @relation(fields: [cardId], references: [id])
+
+  @@unique([userId, cardId])
 }
